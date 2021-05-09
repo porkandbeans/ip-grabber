@@ -22,7 +22,6 @@ site that writes down a lot of information, including:
     
 and after doing all that, it sends the user away (hopefully) completely unaware that any of that happened
 
------
 USAGE
 -----
 
