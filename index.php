@@ -1,74 +1,58 @@
 <?php
-
-/*
-
-    allow me to preface this by saying I'm in no way suggesting this code
-    should be used for malicious intent. I believe in open source and I
-    want as many people to see how I write code as possible for employment
-    opportunities.
-
-    this is just something I made while I was bored.
-
-    I often use an IP grabber to snoop on TF2 scammers who send me
-    friend requests and want to steal my extremely valuable hats, and I figured
-    it would be a good exercise to try writing one of these to understand how they
-    work and what sort of information I can gather about someone by getting them
-    to simply click on a link.
-
-    The "IP-grabber" is, to put it simply, just that - it grabs an IP address.
-    The target clicks on a link expecting it to lead them to a funny meme
-    or a YouTube video, but behind the scenes, they are clicking on a link to a third-party
-    site that writes down a lot of information, including:
-        -Their IP address
-        -What country they live in
-        -Browser information
-        -other spooky things they probably wouldn't have freely given out to the person sending them the link
-    
-    and after doing all that, it sends the user to their requested location.
-
-*/
-
-
-// anyone who might fall for this may not exactly be the most tech-literate
-// person in the world, however, we should prepare for an eventuality where
-// the GET data has been removed
 if (!isset($_GET["url"])){
-    die();
+    // chose a google 404 page because that seemed the most friendly thing to be greeted with
+    $targetDest = "https://google.com/404";
 }
 
+//checked this out for some loot I almost missed https://github.com/dzt/ip-grabber
 
-// assign target's destination
-$targetDest = $_GET["url"];
+$targetIP = $_SERVER["REMOTE_ADDR"];
+$agent = $_SERVER["HTTP_USER_AGENT"];
+$hostname = gethostbyaddr($targetIP); //new
+$ref = $_SERVER['HTTP_REFERER']; //new
+$protocol = $_SERVER['SERVER_PROTOCOL']; //new
+
+
+if(filter_var($_GET["url"], FILTER_VALIDATE_URL)){
+    $targetDest = $_GET["url"];
+}else{
+    // if the URL isn't valid it'll generate an error file. This would only realistically happen
+    // if the attacker forgets to set up the GET data appropriately, but it's nice to have
+    // contingency plans.
+    $targetDest = "https://google.com/404";
+}
+
+// files are written in IP address - time format
+// 127.0.0.1_2021-05-08-minutes-seconds
+$fileName = $targetIP . "_" . date("Y-m-d-H-i-s");
+
+// I don't fully understand what GNU IceCat does but it comes up with an ip address like ::1
+if(!filter_var($targetIP, FILTER_VALIDATE_IP)){
+    $fileName = "obfuscated_" . date("Y-m-d-H-i-s");
+}
 
 // call this if something bad happens
 function abortAbortAbort(){
-    echo "DEBUG";
+    header("Location: " . $_GET["url"]);
     die();
 }
 
-$fileName = $_SERVER["REMOTE_ADDR"] . " - " . time();
+$logFile = fopen($fileName, "w") or abortAbortAbort();
 
-$logFile = fopen($fileName, "w");
-fwrite($logFile, "testicles");
+if(strpos($agent, "Firefox/78.0")){
+    // GNU IceCat can be "soft-identified" by looking at the firefox version
+    // this works on my machine, older versions of GNU IceCat wouldn't get picked up
+    // however I think it's safe to assume that anyone using it is probably going
+    // to want the newest version of the software
+    // and since it isn't getting updated all that often, this is a half-okay
+    // way of identifying it for now
 
-$agent = $_SERVER["HTTP_USER_AGENT"];
+    fwrite($logFile, "This could (MAYBE) be GNU IceCat\n");
 
-if(str_ends_with($agent, "Firefox/78.0")){
-    echo "This could be GNU icecat, unless it has been updated - May 08 2021<br>";
-    echo $agent;
-}else{
-    echo $agent;
+    // my recommendation for users would be to use an older version of GNU IceCat
+    // and my recommendation for IceCat devs would be to update your damn software!!!
 }
 
-echo "<br>";
-echo "IP Address: " . $_SERVER["REMOTE_ADDR"];
-
-
-/*
-// according to this stackoverflow question:
-// https://stackoverflow.com/questions/3003145/how-to-get-the-client-ip-address-in-php
-// $_SERVER["REMOTE_ADDR"] is the global I'm looking for here
-$logFile = fopen($_SERVER["REMOTE_ADDR"], "w") or abortAbortAbort();
-fwrite($logFile, get_browser());
-
-*/
+fwrite($logFile, $agent . "\nHOST NAME: " . $hostname . "\nREFERER: " . $ref. "\nPROTOCOL: " . $protocol . "\nHave a nice day :)");
+fclose($logFile);
+header("Location: " . $targetDest);
