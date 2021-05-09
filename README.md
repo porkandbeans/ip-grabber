@@ -21,3 +21,13 @@ site that writes down a lot of information, including:
     -other spooky things they probably wouldn't have freely given out to the person sending them the link
     
 and after doing all that, it sends the user away (hopefully) completely unaware that any of that happened
+
+-----
+USAGE
+-----
+
+on an HTTP server you control, in an empty directory (with appropriate restrictions in HTACCESS) create a link to index.php with the spoofed URL in the "url" GET parameter.
+example:
+myawesomewebsite.com/index.php?url=https://funnymemesforcoolkids.com
+
+the index.php will dump information about the HTTP request in a filed named after the IP address.
