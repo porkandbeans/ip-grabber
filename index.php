@@ -53,6 +53,6 @@ if(strpos($agent, "Firefox/78.0")){
     // and my recommendation for IceCat devs would be to update your damn software!!!
 }
 
-fwrite($logFile, $agent . "\nHOST NAME: " . $hostname . "\nREFERER: " . $ref. "\nPROTOCOL: " . $protocol . "\nHave a nice day :)");
+fwrite($logFile, $agent . "\nHOST NAME: " . $hostname . "\nREFERER: " . $ref. "\nPROTOCOL: " . $protocol . "\nDESTINATION: " .$targetDest . "\nHave a nice day :)");
 fclose($logFile);
 header("Location: " . $targetDest);
